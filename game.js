@@ -1,297 +1,165 @@
-/* MyOwnSkynet — Simple runner with upgrades
-   No libs, purely Canvas + localStorage
-*/
+// ======== CONFIGURACIÓN DEL JUEGO =========
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+canvas.width = 800;
+canvas.height = 400;
 
-(() => {
-  const canvas = document.getElementById('game');
-  const ctx = canvas.getContext('2d');
+let keys = {};
+let score = 0;
+let lives = 3;
+let bullets = [];
+let enemies = [];
+let lastEnemySpawn = 0;
+let enemySpawnInterval = 1500; // ms
+let gameOver = false;
 
-  // UI
-  const scoreEl = document.getElementById('score');
-  const creditsEl = document.getElementById('credits');
-  const upgradeBtn = document.getElementById('upgradeBtn');
-  const panel = document.getElementById('panelUpgrade');
-  const closePanel = document.getElementById('closePanel');
-  const resetBtn = document.getElementById('resetBtn');
+// ======== JUGADOR ========
+const player = {
+    x: 50,
+    y: canvas.height / 2,
+    width: 40,
+    height: 40,
+    color: "red",
+    speed: 4,
+    bulletSpeed: 6,
+    fireRate: 300,
+    lastShot: 0
+};
 
-  // Game state
-  const state = {
-    running: true,
-    score: 0,
-    credits: 0,
-    speedBase: 6,
-    gravity: 0.9,
-    lastTime: 0,
-    obstacleTimer: 0,
-    obstacleInterval: 1400,
-    obstacles: [],
-    particles: [],
-    shieldActive: false,
-    shieldUntil: 0
-  };
+// ======== EVENTOS DE TECLAS ========
+document.addEventListener("keydown", (e) => keys[e.code] = true);
+document.addEventListener("keyup", (e) => keys[e.code] = false);
 
-  // upgrades persistence
-  const defaultUpgrades = { speed:0, jump:0, shield:0, mult:0 };
-  const upgrades = JSON.parse(localStorage.getItem('mos_upgrades') || 'null') || defaultUpgrades;
-  const persist = ()=> localStorage.setItem('mos_upgrades', JSON.stringify(upgrades));
-
-  function applyUpgrades(){
-    state.speed = state.speedBase * (1 + 0.10 * upgrades.speed);
-    player.jumpStrength = 14 * (1 + 0.12 * upgrades.jump);
-  }
-
-  // Player
-  const player = {
-    x: 60,
-    y: canvas.height - 48,
-    w: 44,
-    h: 40,
-    vy: 0,
-    onGround: true,
-    jumps: 0,
-    maxJumps: 1
-  };
-
-  // Input
-  let pressing = false;
-  window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' || e.code === 'ArrowUp') {
-      e.preventDefault();
-      jump();
+// ======== DISPARAR ========
+function shoot() {
+    const now = Date.now();
+    if (now - player.lastShot > player.fireRate) {
+        bullets.push({
+            x: player.x + player.width,
+            y: player.y + player.height / 2 - 2,
+            width: 8,
+            height: 4,
+            color: "yellow"
+        });
+        player.lastShot = now;
     }
-    if (e.code === 'KeyU') togglePanel();
-  });
-  canvas.addEventListener('mousedown', ()=> jump());
+}
 
-  function jump(){
-    if (player.onGround || player.jumps < player.maxJumps){
-      player.vy = -player.jumpStrength;
-      player.onGround = false;
-      player.jumps++;
+// ======== GENERAR ENEMIGOS (HUMANOS) ========
+function spawnEnemy() {
+    const now = Date.now();
+    if (now - lastEnemySpawn > enemySpawnInterval) {
+        enemies.push({
+            x: canvas.width,
+            y: Math.random() * (canvas.height - 40),
+            width: 30,
+            height: 40,
+            color: "blue",
+            speed: 2
+        });
+        lastEnemySpawn = now;
     }
-  }
+}
 
-  // Obstacles (simple rectangles)
-  function makeObstacle(){
-    const h = 20 + Math.random()*40;
-    const w = 12 + Math.random()*28;
-    state.obstacles.push({
-      x: canvas.width + 20,
-      y: canvas.height - h - 12,
-      w, h,
-      speed: state.speed
+// ======== ACTUALIZAR ENTIDADES ========
+function update() {
+    if (keys["ArrowUp"]) player.y -= player.speed;
+    if (keys["ArrowDown"]) player.y += player.speed;
+    if (keys["Space"]) shoot();
+
+    player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+
+    // Mover balas
+    bullets.forEach((b, i) => {
+        b.x += player.bulletSpeed;
+        if (b.x > canvas.width) bullets.splice(i, 1);
     });
-  }
 
-  // Upgrades UI wiring
-  upgradeBtn.addEventListener('click', togglePanel);
-  closePanel.addEventListener('click', togglePanel);
-  resetBtn.addEventListener('click', () => {
-    if (!confirm('Resetear progreso y mejoras?')) return;
-    localStorage.removeItem('mos_upgrades');
-    Object.assign(upgrades, defaultUpgrades);
-    state.credits = 0;
-    state.score = 0;
-    persist();
-    updateUI();
-    applyUpgrades();
-  });
+    // Mover enemigos
+    enemies.forEach((en, i) => {
+        en.x -= en.speed;
 
-  function togglePanel(){
-    panel.classList.toggle('hidden');
-    updatePanelCosts();
-  }
-
-  function updatePanelCosts(){
-    panel.querySelectorAll('.upgrade').forEach(node=>{
-      const id = node.dataset.id;
-      const base = {speed:10,jump:12,shield:25,mult:20}[id];
-      const nextCost = Math.floor(base * Math.pow(1.6, upgrades[id]||0));
-      node.querySelector('.cost').textContent = nextCost;
-    });
-  }
-
-  panel.addEventListener('click', (ev)=>{
-    if (!ev.target.matches('.buy')) return;
-    const item = ev.target.closest('.upgrade').dataset.id;
-    const base = {speed:10,jump:12,shield:25,mult:20}[item];
-    const cost = Math.floor(base * Math.pow(1.6, upgrades[item]||0));
-    if (state.credits < cost) { alert('Créditos insuficientes'); return; }
-    state.credits -= cost;
-    upgrades[item] = (upgrades[item]||0) + 1;
-    // immediate effect for shield purchase
-    if (item === 'shield') {
-      state.shieldActive = true;
-      state.shieldUntil = performance.now() + 8000; // 8s
-    }
-    persist();
-    updatePanelCosts();
-    applyUpgrades();
-    updateUI();
-  });
-
-  function updateUI(){
-    scoreEl.textContent = Math.floor(state.score);
-    creditsEl.textContent = Math.floor(state.credits);
-  }
-
-  // Collisions
-  function rectsOverlap(a,b){
-    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-  }
-
-  // Main loop
-  function loop(ts){
-    if (!state.lastTime) state.lastTime = ts;
-    const dt = ts - state.lastTime;
-    state.lastTime = ts;
-
-    // spawn obstacles
-    state.obstacleTimer += dt;
-    if (state.obstacleTimer > state.obstacleInterval - Math.min(800, state.score*2)){
-      state.obstacleTimer = 0;
-      makeObstacle();
-    }
-
-    // physics
-    player.vy += state.gravity;
-    player.y += player.vy;
-    if (player.y > canvas.height - player.h - 12){
-      player.y = canvas.height - player.h - 12;
-      player.vy = 0;
-      player.onGround = true;
-      player.jumps = 0;
-    }
-
-    // move obstacles
-    for (let i = state.obstacles.length-1; i>=0; i--){
-      const ob = state.obstacles[i];
-      ob.x -= state.speed;
-      if (ob.x + ob.w < -50) {
-        state.obstacles.splice(i,1);
-        // reward for avoiding
-        const reward = 1 + (upgrades.mult || 0)*0.1;
-        state.score += 10;
-        state.credits += 1 * reward;
-      } else {
-        // collision
-        if (rectsOverlap(player, ob)){
-          if (state.shieldActive && performance.now() < state.shieldUntil){
-            // consume shield
-            state.shieldActive = false;
-            state.shieldUntil = 0;
-            // destroy obstacle
-            state.obstacles.splice(i,1);
-            createParticles(ob.x+ob.w/2, ob.y+ob.h/2);
-          } else {
-            // game over -> reset but keep upgrades
-            state.running = false;
-            setTimeout(()=>{
-              // soft reset positions & continue
-              state.obstacles = [];
-              state.score = 0;
-              player.y = canvas.height - player.h - 12;
-              player.vy = 0;
-              state.running = true;
-              applyUpgrades();
-            }, 900);
-          }
+        // Colisión con jugador
+        if (checkCollision(player, en)) {
+            lives--;
+            enemies.splice(i, 1);
+            if (lives <= 0) {
+                gameOver = true;
+            }
         }
-      }
-    }
 
-    // shield timeout check
-    if (state.shieldActive && performance.now() > state.shieldUntil){
-      state.shieldActive = false;
-    }
-
-    // background and render
-    draw();
-
-    // score increases by time
-    if (state.running) {
-      state.score += 0.06 * (1 + (upgrades.speed||0)*0.05);
-      state.credits += 0.006 * (1 + (upgrades.mult||0)*0.1);
-    }
-
-    updateUI();
-    requestAnimationFrame(loop);
-  }
-
-  function createParticles(x,y){
-    for (let i=0;i<12;i++){
-      state.particles.push({
-        x,y,
-        vx:(Math.random()-0.5)*4,
-        vy:(Math.random()-0.6)*2,
-        life:80 + Math.random()*120
-      });
-    }
-  }
-
-  function draw(){
-    // clear
-    ctx.fillStyle = '#e6eef7';
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-
-    // ground
-    ctx.fillStyle = '#cfd8e3';
-    ctx.fillRect(0, canvas.height - 12, canvas.width, 12);
-
-    // score text
-    ctx.fillStyle = '#141826';
-    ctx.font = '12px Inter, Arial';
-    ctx.fillText('Skynet — v' + (1 + (upgrades.speed||0)*0.1).toFixed(2), 12, 18);
-
-    // player
-    ctx.fillStyle = '#0b1020';
-    ctx.fillRect(player.x, player.y, player.w, player.h);
-    // helmet / eye
-    ctx.fillStyle = '#58d68d';
-    ctx.fillRect(player.x + player.w - 12, player.y + 8, 8, 8);
-
-    // shield visual
-    if (state.shieldActive){
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(88,214,141,0.6)';
-      ctx.lineWidth = 3;
-      ctx.ellipse(player.x + player.w/2, player.y + player.h/2, player.w, player.h+6, 0,0,Math.PI*2);
-      ctx.stroke();
-    }
-
-    // obstacles
-    state.obstacles.forEach(ob=>{
-      ctx.fillStyle = '#b33';
-      ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
-      // small detail "human" icon
-      ctx.fillStyle = '#300';
-      ctx.fillRect(ob.x + ob.w/2 - 2, ob.y + 4, 4, 6);
+        // Eliminar si sale de pantalla
+        if (en.x + en.width < 0) enemies.splice(i, 1);
     });
 
-    // particles
-    for (let i = state.particles.length-1;i>=0;i--){
-      const p = state.particles[i];
-      p.x += p.vx; p.y += p.vy; p.vy += 0.06; p.life -= 8;
-      ctx.fillStyle = 'rgba(80,80,80,0.8)';
-      ctx.fillRect(p.x, p.y, 2,2);
-      if (p.life <= 0) state.particles.splice(i,1);
-    }
-  }
-
-  // init
-  function init(){
-    applyUpgrades();
-    // double-jump if jump upgrade high enough
-    player.maxJumps = upgrades.jump >= 3 ? 2 : 1;
-    // listen UI for buys updates if storage changed externally
-    window.addEventListener('storage', ()=> {
-      const other = JSON.parse(localStorage.getItem('mos_upgrades')||'null');
-      if (other) Object.assign(upgrades, other);
-      applyUpgrades();
+    // Colisión balas-enemigos
+    bullets.forEach((b, bi) => {
+        enemies.forEach((en, ei) => {
+            if (checkCollision(b, en)) {
+                score += 10;
+                enemies.splice(ei, 1);
+                bullets.splice(bi, 1);
+            }
+        });
     });
-    requestAnimationFrame(loop);
-  }
 
-  // start
-  init();
-})();
+    spawnEnemy();
+}
+
+// ======== DIBUJAR ========
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Jugador
+    ctx.fillStyle = player.color;
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+
+    // Balas
+    bullets.forEach(b => {
+        ctx.fillStyle = b.color;
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+    });
+
+    // Enemigos
+    enemies.forEach(en => {
+        ctx.fillStyle = en.color;
+        ctx.fillRect(en.x, en.y, en.width, en.height);
+    });
+
+    // UI
+    ctx.fillStyle = "white";
+    ctx.font = "16px Arial";
+    ctx.fillText("Puntos: " + score, 10, 20);
+    ctx.fillText("Vidas: " + lives, 10, 40);
+
+    if (gameOver) {
+        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "red";
+        ctx.font = "40px Arial";
+        ctx.fillText("GAME OVER", canvas.width / 2 - 100, canvas.height / 2);
+        ctx.font = "20px Arial";
+        ctx.fillText("Presiona F5 para reiniciar", canvas.width / 2 - 110, canvas.height / 2 + 40);
+    }
+}
+
+// ======== CHEQUEAR COLISIÓN ========
+function checkCollision(a, b) {
+    return a.x < b.x + b.width &&
+           a.x + a.width > b.x &&
+           a.y < b.y + b.height &&
+           a.y + a.height > b.y;
+}
+
+// ======== BUCLE PRINCIPAL ========
+function gameLoop() {
+    if (!gameOver) {
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    } else {
+        draw();
+    }
+}
+
+gameLoop();
