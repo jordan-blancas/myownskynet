@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MyOwnSkynet — Runner</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>MyOwnSkynet</h1>
+    <div class="hud">
+      <div>Score: <span id="score">0</span></div>
+      <div>Cred.: <span id="credits">0</span></div>
+      <button id="upgradeBtn">Mejoras</button>
+      <button id="resetBtn" title="Resetear progreso">Reset</button>
+    </div>
+  </header>
+
+  <main>
+    <canvas id="game" width="900" height="220"></canvas>
+
+    <aside id="panelUpgrade" class="panel hidden">
+      <h2>Mejoras</h2>
+      <div class="upgrade-list">
+        <div class="upgrade" data-id="speed">
+          <div class="u-title">Velocidad base</div>
+          <div>+10% por nivel</div>
+          <div>Coste: <span class="cost">10</span></div>
+          <button class="buy">Comprar</button>
+        </div>
+
+        <div class="upgrade" data-id="jump">
+          <div class="u-title">Fuerza salto</div>
+          <div>+12% por nivel</div>
+          <div>Coste: <span class="cost">12</span></div>
+          <button class="buy">Comprar</button>
+        </div>
+
+        <div class="upgrade" data-id="shield">
+          <div class="u-title">Escudo (temp)</div>
+          <div>Protege de 1 impacto</div>
+          <div>Coste: <span class="cost">25</span></div>
+          <button class="buy">Comprar</button>
+        </div>
+
+        <div class="upgrade" data-id="mult">
+          <div class="u-title">Multiplicador de créditos</div>
+          <div>+0.1x por nivel</div>
+          <div>Coste: <span class="cost">20</span></div>
+          <button class="buy">Comprar</button>
+        </div>
+      </div>
+      <button id="closePanel">Cerrar</button>
+    </aside>
+
+    <section class="help">
+      <p>Controles: <strong>Espacio</strong> para saltar / doble salto posible con mejoras. Evita obstáculos (representan resistencia humana). Gana créditos por distancia y por esquivar.</p>
+      <p>Más adelante puedes exportar a Unity WebGL e integrar aquí en /unity-build o cargarlo en un iframe.</p>
+    </section>
+  </main>
+
+  <footer class="ft">
+    Deploy: GitHub ➜ Vercel. (Ver instrucciones en README)
+  </footer>
+
+  <script src="game.js"></script>
+</body>
+</html>

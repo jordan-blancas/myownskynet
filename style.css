@@ -1,0 +1,23 @@
+:root{
+  --bg:#0b1020;
+  --panel:#0f1724;
+  --accent:#58d68d;
+  --muted:#9aa4b2;
+}
+*{box-sizing:border-box;font-family:Inter,system-ui,Arial;margin:0;padding:0}
+body{background:linear-gradient(180deg,var(--bg),#0b0f14);color:#dfe7ee;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+.topbar{width:100%;max-width:1100px;padding:12px 18px;display:flex;justify-content:space-between;align-items:center}
+.topbar h1{font-size:18px;color:var(--accent);letter-spacing:1px}
+.hud{display:flex;gap:12px;align-items:center}
+.hud button{background:transparent;border:1px solid rgba(255,255,255,0.08);padding:6px 10px;border-radius:6px;color:#dfe7ee;cursor:pointer}
+main{width:100%;max-width:1100px;display:flex;gap:18px;align-items:flex-start;padding:0 18px 60px 18px}
+canvas{background:#edf2f7;border-radius:6px;display:block;box-shadow:0 8px 30px rgba(0,0,0,0.6)}
+.panel{width:280px;padding:14px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
+.hidden{display:none}
+.upgrade-list{display:flex;flex-direction:column;gap:8px}
+.upgrade{padding:8px;border-radius:6px;background:rgba(0,0,0,0.2);display:flex;flex-direction:column;gap:6px}
+.u-title{font-weight:600}
+.buy{align-self:flex-end;padding:6px 8px;border-radius:6px;border:none;background:var(--accent);color:#031519;cursor:pointer}
+.help{flex:1;color:var(--muted);font-size:13px;padding-top:8px}
+.ft{margin-top:auto;padding:18px;color:var(--muted)}
+#resetBtn{background:transparent;border:1px dashed rgba(255,255,255,0.06);padding:6px 10px;border-radius:6px;color:#f66}
