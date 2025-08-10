@@ -16,6 +16,11 @@
     canvas.width = Math.floor(maxW - 0); // use full width available
     // height based on ratio but allow chunk for mobile
     canvas.height = Math.floor(Math.max(220 * scale, window.innerHeight * 0.35));
+
+    // keep player on ground when resize
+    if (player) {
+      player.y = Math.min(player.y, canvas.height - player.h - 12);
+    }
   }
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
@@ -86,9 +91,24 @@
   const keys = {};
   window.addEventListener('keydown', e => {
     keys[e.code] = true;
-    // quick controls: Space = jump, KeyF = shoot, KeyU = toggle panel
-    if (e.code === 'Space') { e.preventDefault(); doJump(); }
-    if (e.code === 'KeyF') { e.preventDefault(); shoot(); }
+    // Controls:
+    // ArrowUp -> jump
+    // ArrowLeft/ArrowRight -> movement (handled in loop)
+    // Space -> shoot (changed from previous jump)
+    // KeyF -> alternate shoot
+    // KeyU -> toggle panel
+    if (e.code === 'ArrowUp') {
+      e.preventDefault();
+      doJump();
+    }
+    if (e.code === 'Space') {
+      e.preventDefault();
+      shoot();
+    }
+    if (e.code === 'KeyF') {
+      e.preventDefault();
+      shoot();
+    }
     if (e.code === 'KeyU') togglePanel();
   });
   window.addEventListener('keyup', e => keys[e.code] = false);
@@ -254,6 +274,19 @@
     const dt = ts - state.lastTime;
     state.lastTime = ts;
 
+    // === PLAYER HORIZONTAL MOVEMENT (added) ===
+    // Use dt to make movement frame-rate independent (base frame ~16ms)
+    const frameScale = Math.max(0.5, Math.min(2, dt / 16));
+    if (keys['ArrowLeft']) {
+      player.x -= (player.speed * frameScale);
+    }
+    if (keys['ArrowRight']) {
+      player.x += (player.speed * frameScale);
+    }
+    // Keep within bounds
+    if (player.x < 8) player.x = 8;
+    if (player.x + player.w > canvas.width - 8) player.x = canvas.width - player.w - 8;
+
     // spawn logic
     state.enemyTimer += dt;
     const interval = Math.max(600, state.enemyInterval - Math.min(800, state.score * 0.8));
@@ -263,8 +296,8 @@
     }
 
     // physics: apply gravity & update player
-    player.vy += player.gravity;
-    player.y += player.vy;
+    player.vy += player.gravity * (dt/16);
+    player.y += player.vy * (dt/16);
     if (player.y > canvas.height - player.h - 12){
       player.y = canvas.height - player.h - 12;
       player.vy = 0;
@@ -277,7 +310,7 @@
     // move obstacles (humans)
     for (let i = state.obstacles.length - 1; i >= 0; i--){
       const ob = state.obstacles[i];
-      ob.x -= ob.speed + (upgrades.speed * 0.2); // small difficulty scaling
+      ob.x -= (ob.speed + (upgrades.speed * 0.2)) * (dt/16); // small difficulty scaling, frame independent
       // check collision with player
       if (rectsOverlap(player, ob)){
         if (state.shieldActive && performance.now() < state.shieldUntil){
@@ -305,7 +338,7 @@
     // move bullets, check collisions with enemies
     for (let i = state.bullets.length - 1; i >= 0; i--){
       const b = state.bullets[i];
-      b.x += b.vx;
+      b.x += b.vx * (dt/16);
       // remove if out of screen
       if (b.x > canvas.width + 50) { state.bullets.splice(i,1); continue; }
       // collision with obstacles
@@ -327,10 +360,10 @@
     // particles update
     for (let i = state.particles.length - 1; i >= 0; i--){
       const p = state.particles[i];
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += 0.12;
-      p.life -= 6;
+      p.x += p.vx * (dt/16);
+      p.y += p.vy * (dt/16);
+      p.vy += 0.12 * (dt/16);
+      p.life -= 6 * (dt/16);
       if (p.life <= 0) state.particles.splice(i,1);
     }
 
@@ -341,8 +374,8 @@
 
     // scoring over time if running
     if (state.running){
-      state.score += 0.04 * (1 + (upgrades.speed||0)*0.03);
-      state.credits += 0.004 * (1 + (upgrades.mult||0)*0.08);
+      state.score += 0.04 * (1 + (upgrades.speed||0)*0.03) * (dt/16);
+      state.credits += 0.004 * (1 + (upgrades.mult||0)*0.08) * (dt/16);
     }
 
     // Draw
