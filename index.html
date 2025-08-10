@@ -2,9 +2,34 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <!-- PWA-friendly viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>MyOwnSkynet — Runner</title>
+
+  <!-- PWA & mobile -->
+  <meta name="theme-color" content="#0b1020">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png" type="image/png">
+
   <link rel="stylesheet" href="style.css" />
+
+  <style>
+    /* force body/canvas to behave nicely on mobile */
+    html,body {
+      height:100%;
+      margin:0;
+      padding:0;
+      background:linear-gradient(180deg,#0b1020,#071018);
+    }
+    main { width:100%; max-width:1100px; margin:0 auto; display:flex; gap:18px; align-items:flex-start; padding:12px; box-sizing:border-box; }
+    canvas { background:#edf2f7; border-radius:6px; display:block; width:100%; height:auto; max-height:60vh; }
+    @media (max-width:720px){
+      main{flex-direction:column; padding:8px;}
+      canvas{max-height:60vh;}
+      .panel{width:100%}
+    }
+    /* keep the rest of your style.css rules */
+  </style>
 </head>
 <body>
   <header class="topbar">
@@ -18,6 +43,7 @@
   </header>
 
   <main>
+    <!-- Canvas: el id se mantiene como "game" para compatibilidad con game.js -->
     <canvas id="game" width="900" height="220"></canvas>
 
     <aside id="panelUpgrade" class="panel hidden">
@@ -55,7 +81,7 @@
     </aside>
 
     <section class="help">
-      <p>Controles: <strong>Espacio</strong> para saltar / doble salto posible con mejoras. Evita obstáculos (representan resistencia humana). Gana créditos por distancia y por esquivar.</p>
+      <p>Controles: <strong>Tocar / clic (lado derecho)</strong> para disparar, <strong>espacio</strong> o tocar izquierda para saltar. Doble salto desbloqueable. Gana créditos al eliminar humanos o por distancia.</p>
       <p>Más adelante puedes exportar a Unity WebGL e integrar aquí en /unity-build o cargarlo en un iframe.</p>
     </section>
   </main>
@@ -65,5 +91,14 @@
   </footer>
 
   <script src="game.js"></script>
+
+  <script>
+    // Registrar Service Worker para PWA; el archivo service-worker.js DEBE estar en la raíz.
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(() => console.log('✅ Service Worker registrado'))
+        .catch(err => console.error('❌ SW fallo:', err));
+    }
+  </script>
 </body>
 </html>
