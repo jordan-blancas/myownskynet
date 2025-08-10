@@ -405,13 +405,8 @@
     ctx.font = `${Math.max(12, canvas.width * 0.012)}px Inter, Arial`;
     ctx.fillText('Skynet — v' + (1 + (upgrades.speed||0)*0.1).toFixed(2), 12, 18);
 
-    // player
-    ctx.fillStyle = '#0b1020';
-    // ensure player position relative to ground
-    if (player.y === 0) player.y = canvas.height - player.h - 12;
-    ctx.fillRect(player.x, player.y, player.w, player.h);
-    ctx.fillStyle = '#58d68d';
-    ctx.fillRect(player.x + player.w - 12, player.y + 8, 8, 8);
+    // === DIBUJA HUMANO JUGADOR ===
+    drawPlayerHuman();
 
     // shield visual
     if (state.shieldActive){
@@ -434,6 +429,33 @@
       ctx.fillStyle = p.color || '#333';
       ctx.fillRect(p.x, p.y, 2, 2);
     });
+  }
+
+  // Nuevo: Dibuja el jugador como humano
+  function drawPlayerHuman() {
+    const px = player.x, py = player.y, w = player.w, h = player.h;
+    // cabeza
+    ctx.fillStyle = '#58d68d';
+    ctx.beginPath();
+    ctx.arc(px + w/2, py + 10, 10, 0, Math.PI*2);
+    ctx.fill();
+    // cuerpo
+    ctx.strokeStyle = '#0b1020';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(px + w/2, py + 20);
+    ctx.lineTo(px + w/2, py + h - 8); // cuerpo
+    // brazos
+    ctx.moveTo(px + w/2, py + 28);
+    ctx.lineTo(px + w/2 - 14, py + 38);
+    ctx.moveTo(px + w/2, py + 28);
+    ctx.lineTo(px + w/2 + 14, py + 38);
+    // piernas
+    ctx.moveTo(px + w/2, py + h - 8);
+    ctx.lineTo(px + w/2 - 10, py + h + 12);
+    ctx.moveTo(px + w/2, py + h - 8);
+    ctx.lineTo(px + w/2 + 10, py + h + 12);
+    ctx.stroke();
   }
 
   function drawHuman(ob){
@@ -478,6 +500,11 @@
   canvas.addEventListener('touchstart', (e) => {
     if (gameOver) { e.preventDefault(); resetRound(); }
   }, {passive:false});
+
+  // Al final del archivo, después de otros event listeners:
+  document.getElementById('btnRestart').addEventListener('click', () => {
+    resetRound();
+  });
 
   // --- Storage sync (external changes) ---
   window.addEventListener('storage', () => {
