@@ -21,20 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   console.log('✅ Canvas y contexto 2D inicializados');
 
-  function resizeCanvas() {
-    const parent = canvas.parentElement;
-    const maxW = Math.min(window.innerWidth, 1100);
-    const scale = Math.max(0.6, Math.min(1, window.innerWidth / 900));
-    canvas.width = Math.floor(maxW - 0);
-    // Cambia 220 por 320 o 400 para asegurar altura visible
-    canvas.height = Math.floor(Math.max(320 * scale, window.innerHeight * 0.35));
-    if (player) {
-      player.y = canvas.height - player.h - 12;
-    }
-  }
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
-
   // --- UI elements (existing in HTML) ---
   const scoreEl = document.getElementById('score');
   const creditsEl = document.getElementById('credits');
@@ -103,6 +89,21 @@ document.addEventListener('DOMContentLoaded', function() {
     bulletSpeed: 10,
     lives: 1
   };
+
+  // Configurar canvas DESPUÉS de definir player
+  function resizeCanvas() {
+    const parent = canvas.parentElement;
+    const maxW = Math.min(window.innerWidth, 1100);
+    const scale = Math.max(0.6, Math.min(1, window.innerWidth / 900));
+    canvas.width = Math.floor(maxW - 0);
+    // Cambia 220 por 320 o 400 para asegurar altura visible
+    canvas.height = Math.floor(Math.max(320 * scale, window.innerHeight * 0.35));
+    if (player) {
+      player.y = canvas.height - player.h - 12;
+    }
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
 
   // apply upgrades to player (call after resize too)
   function applyUpgrades(){
