@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar Versión - MyOwnSkynet</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0b1020;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        .success { background: rgba(88, 214, 141, 0.2); border-color: #58d68d; }
+        .error { background: rgba(255, 0, 0, 0.2); border-color: #ff0000; }
+        .info { background: rgba(0, 150, 255, 0.2); border-color: #0096ff; }
+        canvas {
+            border: 2px solid #58d68d;
+            border-radius: 8px;
+            display: block;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Verificación de Versión - MyOwnSkynet</h1>
+    
+    <div id="status" class="status info">
+        Verificando versión del juego...
+    </div>
+
+    <canvas id="game" width="800" height="400"></canvas>
+
+    <div id="results"></div>
+
+    <script>
+        // Verificar versión del archivo
+        const script = document.createElement('script');
+        script.src = 'game.js?v=' + Date.now(); // Forzar recarga
+        
+        script.onload = function() {
+            console.log('✅ game.js cargado correctamente');
+            document.getElementById('status').className = 'status success';
+            document.getElementById('status').textContent = '✅ game.js cargado correctamente';
+        };
+        
+        script.onerror = function() {
+            console.error('❌ Error cargando game.js');
+            document.getElementById('status').className = 'status error';
+            document.getElementById('status').textContent = '❌ Error cargando game.js';
+        };
+        
+        document.head.appendChild(script);
+        
+        // Verificar después de 2 segundos
+        setTimeout(() => {
+            const results = document.getElementById('results');
+            
+            if (window.MOS && window.MOS.state) {
+                results.innerHTML = `
+                    <div class="status success">
+                        <h3>✅ ¡Juego funcionando correctamente!</h3>
+                        <p>• MOS object encontrado</p>
+                        <p>• Game state inicializado</p>
+                        <p>• Canvas visible</p>
+                        <p>• Controles activos</p>
+                    </div>
+                `;
+            } else {
+                results.innerHTML = `
+                    <div class="status error">
+                        <h3>❌ Problema detectado</h3>
+                        <p>• MOS object no encontrado</p>
+                        <p>• El juego no se inicializó correctamente</p>
+                        <p>• Posible problema de caché</p>
+                    </div>
+                `;
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
