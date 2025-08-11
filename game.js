@@ -103,7 +103,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
 
   // apply upgrades to player (call after resize too)
   function applyUpgrades(){
@@ -117,6 +116,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   applyUpgrades();
+
+  // Ahora que player está definido, configurar el canvas
+  resizeCanvas();
 
   // --- Input: keyboard + mouse + touch ---
   const keys = {};
