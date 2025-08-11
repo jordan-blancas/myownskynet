@@ -57,13 +57,13 @@
   // --- Player ---
   const player = {
     x: 60,
-    y: 0,
-    w: 48,
-    h: 40,
+    y: canvas.height - 60,
+    w: 28,
+    h: 48,
     vy: 0,
-    gravity: 0.9,
-    onGround: true,
     jumps: 0,
+    gravity: 1.2,
+    onGround: true,
     maxJumps: 1,
     baseSpeed: 6,
     speed: 6,
