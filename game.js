@@ -450,6 +450,22 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.fillText(`Puntuación Final: ${Math.floor(gameState.score)}`, canvas.width/2, canvas.height/2 + 20);
             ctx.textAlign = 'left';
         }
+        
+        // Pantalla de inicio
+        if (!gameState.running && !gameState.gameOver) {
+            ctx.fillStyle = 'rgba(0,0,0,0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#58d68d';
+            ctx.font = '32px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('MY OWN SKYNET', canvas.width/2, canvas.height/2 - 40);
+            ctx.fillStyle = '#fff';
+            ctx.font = '18px Arial';
+            ctx.fillText('Presiona "Iniciar" para comenzar', canvas.width/2, canvas.height/2);
+            ctx.font = '14px Arial';
+            ctx.fillText('Usa las flechas para moverte, F para disparar', canvas.width/2, canvas.height/2 + 30);
+            ctx.textAlign = 'left';
+        }
     }
     
     function updateUI() {
@@ -565,15 +581,14 @@ document.addEventListener('DOMContentLoaded', function() {
         drawGame();
         updateUI();
         
-        if (gameState.running) {
-            requestAnimationFrame(gameLoop);
-        }
+        // Siempre continuar el bucle para mostrar la pantalla de inicio
+        requestAnimationFrame(gameLoop);
     }
     
     // Ahora que todo está configurado, inicializar el canvas
     resizeCanvas();
     
-    // Iniciar el juego
+    // Iniciar el bucle de renderizado (siempre activo)
     console.log('🚀 Iniciando bucle del juego...');
     requestAnimationFrame(gameLoop);
     
