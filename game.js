@@ -233,33 +233,76 @@ document.addEventListener('DOMContentLoaded', function() {
         gameState.credits += 0.01;
     }
     
-    // Función para dibujar personaje humano
+    // Función para dibujar personaje humano más realista
     function drawHuman(x, y, w, h, direction = 1) {
-        ctx.fillStyle = '#58d68d'; // Color verde para el jugador
-        ctx.fillRect(x, y, w, h);
-        
-        // Cabeza
+        // Cabeza (más ovalada)
         ctx.fillStyle = '#f4d03f';
-        ctx.fillRect(x + w/4, y, w/2, h/3);
+        ctx.beginPath();
+        ctx.ellipse(x + w/2, y + h/6, w/3, h/4, 0, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Pelo
+        ctx.fillStyle = '#8B4513';
+        ctx.beginPath();
+        ctx.ellipse(x + w/2, y + h/8, w/2.5, h/5, 0, 0, 2 * Math.PI);
+        ctx.fill();
         
         // Ojos
         ctx.fillStyle = '#000';
-        ctx.fillRect(x + w/3, y + h/8, 2, 2);
-        ctx.fillRect(x + 2*w/3, y + h/8, 2, 2);
+        ctx.beginPath();
+        ctx.arc(x + w/2 - 3, y + h/6, 1.5, 0, 2 * Math.PI);
+        ctx.arc(x + w/2 + 3, y + h/6, 1.5, 0, 2 * Math.PI);
+        ctx.fill();
         
-        // Cuerpo
+        // Pupilas
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(x + w/2 - 3, y + h/6 - 0.5, 0.5, 0, 2 * Math.PI);
+        ctx.arc(x + w/2 + 3, y + h/6 - 0.5, 0.5, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Nariz
+        ctx.fillStyle = '#f39c12';
+        ctx.beginPath();
+        ctx.arc(x + w/2, y + h/5, 1, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Boca
+        ctx.strokeStyle = '#e74c3c';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(x + w/2, y + h/4, 2, 0, Math.PI);
+        ctx.stroke();
+        
+        // Cuello
+        ctx.fillStyle = '#f4d03f';
+        ctx.fillRect(x + w/2 - 2, y + h/3, 4, h/8);
+        
+        // Cuerpo (camiseta)
         ctx.fillStyle = '#3498db';
-        ctx.fillRect(x + w/4, y + h/3, w/2, h/2);
+        ctx.fillRect(x + w/4, y + h/2.5, w/2, h/2);
         
         // Brazos
         ctx.fillStyle = '#f4d03f';
-        ctx.fillRect(x, y + h/3, w/4, h/4);
-        ctx.fillRect(x + 3*w/4, y + h/3, w/4, h/4);
+        ctx.fillRect(x + w/6, y + h/2.5, w/6, h/3);
+        ctx.fillRect(x + 2*w/3, y + h/2.5, w/6, h/3);
         
-        // Piernas
+        // Manos
+        ctx.fillStyle = '#f4d03f';
+        ctx.beginPath();
+        ctx.arc(x + w/6, y + h/1.8, 3, 0, 2 * Math.PI);
+        ctx.arc(x + 5*w/6, y + h/1.8, 3, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Piernas (pantalones)
         ctx.fillStyle = '#2c3e50';
-        ctx.fillRect(x + w/4, y + 5*h/6, w/3, h/6);
-        ctx.fillRect(x + 5*w/12, y + 5*h/6, w/3, h/6);
+        ctx.fillRect(x + w/4, y + h*0.9, w/3, h/4);
+        ctx.fillRect(x + 5*w/12, y + h*0.9, w/3, h/4);
+        
+        // Zapatos
+        ctx.fillStyle = '#34495e';
+        ctx.fillRect(x + w/4, y + h*1.15, w/3, h/12);
+        ctx.fillRect(x + 5*w/12, y + h*1.15, w/3, h/12);
     }
     
     // Función para dibujar enemigo
