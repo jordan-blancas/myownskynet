@@ -515,6 +515,11 @@
     }
   });
 
+  // Asegura que el juego arranca en modo "no game over" y corriendo
+  gameOver = false;
+  state.running = true;
+  state.lastTime = performance.now();
+
   // start loop
   requestAnimationFrame(loop);
 
