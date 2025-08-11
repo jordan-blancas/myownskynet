@@ -21,6 +21,24 @@
       padding:0;
       background:linear-gradient(180deg,#0b1020,#071018);
     }
+    
+    /* Mejorar el header */
+    .topbar {
+      padding: 15px 20px;
+      margin-bottom: 20px;
+    }
+    
+    .topbar h1 {
+      margin: 0;
+      color: #58d68d;
+    }
+    
+    .hud {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      margin-top: 10px;
+    }
     main { 
       width:100%; 
       max-width:1100px; 
@@ -49,12 +67,13 @@
       border-radius: 8px;
       font-size: 14px;
       line-height: 1.4;
+      margin-right: 20px; /* Espacio para los botones de juego */
     }
     
     /* Botones principales del juego */
     .game-controls {
       position: fixed;
-      top: 20px;
+      top: 80px; /* Más abajo para no sobreponer el header */
       right: 20px;
       display: flex;
       gap: 10px;
@@ -82,7 +101,7 @@
     /* Controles retráctiles */
     .controls-panel {
       position: fixed;
-      bottom: 20px;
+      bottom: 80px; /* Más arriba para no tapar el footer */
       left: 50%;
       transform: translateX(-50%);
       background: rgba(0,0,0,0.9);
@@ -160,11 +179,21 @@
       display: none !important;
     }
     
+    /* Mejorar el footer */
+    .ft {
+      margin-bottom: 100px; /* Espacio para los controles */
+      text-align: center;
+      padding: 20px 0;
+      color: #888;
+    }
+    
     @media (max-width:720px){
       main{flex-direction:column; padding:8px;}
       canvas{max-height:60vh;}
       .panel{width:100%}
-      .help { flex: none; width: 100%; }
+      .help { flex: none; width: 100%; margin-right: 0; }
+      .game-controls { top: 70px; }
+      .controls-panel { bottom: 70px; }
     }
     /* keep the rest of your style.css rules */
   </style>
@@ -261,7 +290,7 @@
     Creado por: Jordan Blancas.
   </footer>
 
-  <script src="game.js?v=6"></script>
+  <script src="game.js?v=7"></script>
   <script src="debug.js"></script>
 
   <script>
