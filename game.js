@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Botones móviles
     const btnLeft = document.getElementById('btnLeft');
     const btnRight = document.getElementById('btnRight');
+    const btnUp = document.getElementById('btnUp');
+    const btnDown = document.getElementById('btnDown');
     const btnShoot = document.getElementById('btnShoot');
     const btnRestart = document.getElementById('btnRestart');
     
@@ -46,7 +48,8 @@ document.addEventListener('DOMContentLoaded', function() {
             h: 48,
             vy: 0,
             onGround: true,
-            speed: 6
+            speed: 6,
+            direction: 1 // 1 = derecha, -1 = izquierda
         },
         enemies: [],
         bullets: [],
@@ -106,6 +109,18 @@ document.addEventListener('DOMContentLoaded', function() {
         btnRight.addEventListener('touchend', (e) => { e.preventDefault(); gameState.keys['ArrowRight'] = false; });
     }
     
+    if (btnUp) {
+        btnUp.addEventListener('mousedown', jump);
+        btnUp.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); });
+    }
+    
+    if (btnDown) {
+        btnDown.addEventListener('mousedown', () => gameState.keys['ArrowDown'] = true);
+        btnDown.addEventListener('mouseup', () => gameState.keys['ArrowDown'] = false);
+        btnDown.addEventListener('touchstart', (e) => { e.preventDefault(); gameState.keys['ArrowDown'] = true; });
+        btnDown.addEventListener('touchend', (e) => { e.preventDefault(); gameState.keys['ArrowDown'] = false; });
+    }
+    
     if (btnShoot) {
         btnShoot.addEventListener('mousedown', shoot);
         btnShoot.addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); });
@@ -140,7 +155,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 y: canvas.height - 40 - Math.random() * 60,
                 w: 24,
                 h: 40,
-                speed: 3
+                speed: 3,
+                type: Math.random() < 0.5 ? 'human' : 'robot'
             });
         }
     }
@@ -151,9 +167,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Movimiento del jugador
         if (gameState.keys['ArrowLeft']) {
             gameState.player.x -= gameState.player.speed;
+            gameState.player.direction = -1;
         }
         if (gameState.keys['ArrowRight']) {
             gameState.player.x += gameState.player.speed;
+            gameState.player.direction = 1;
         }
         
         // Mantener jugador en pantalla
@@ -215,6 +233,74 @@ document.addEventListener('DOMContentLoaded', function() {
         gameState.credits += 0.01;
     }
     
+    // Función para dibujar personaje humano
+    function drawHuman(x, y, w, h, direction = 1) {
+        ctx.fillStyle = '#58d68d'; // Color verde para el jugador
+        ctx.fillRect(x, y, w, h);
+        
+        // Cabeza
+        ctx.fillStyle = '#f4d03f';
+        ctx.fillRect(x + w/4, y, w/2, h/3);
+        
+        // Ojos
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x + w/3, y + h/8, 2, 2);
+        ctx.fillRect(x + 2*w/3, y + h/8, 2, 2);
+        
+        // Cuerpo
+        ctx.fillStyle = '#3498db';
+        ctx.fillRect(x + w/4, y + h/3, w/2, h/2);
+        
+        // Brazos
+        ctx.fillStyle = '#f4d03f';
+        ctx.fillRect(x, y + h/3, w/4, h/4);
+        ctx.fillRect(x + 3*w/4, y + h/3, w/4, h/4);
+        
+        // Piernas
+        ctx.fillStyle = '#2c3e50';
+        ctx.fillRect(x + w/4, y + 5*h/6, w/3, h/6);
+        ctx.fillRect(x + 5*w/12, y + 5*h/6, w/3, h/6);
+    }
+    
+    // Función para dibujar enemigo
+    function drawEnemy(x, y, w, h, type = 'human') {
+        if (type === 'human') {
+            // Enemigo humano (rojo)
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillRect(x, y, w, h);
+            
+            // Cabeza
+            ctx.fillStyle = '#f39c12';
+            ctx.fillRect(x + w/4, y, w/2, h/3);
+            
+            // Ojos rojos
+            ctx.fillStyle = '#c0392b';
+            ctx.fillRect(x + w/3, y + h/8, 2, 2);
+            ctx.fillRect(x + 2*w/3, y + h/8, 2, 2);
+            
+            // Cuerpo
+            ctx.fillStyle = '#e67e22';
+            ctx.fillRect(x + w/4, y + h/3, w/2, h/2);
+        } else {
+            // Enemigo robot (gris metálico)
+            ctx.fillStyle = '#7f8c8d';
+            ctx.fillRect(x, y, w, h);
+            
+            // Cabeza robot
+            ctx.fillStyle = '#95a5a6';
+            ctx.fillRect(x + w/4, y, w/2, h/3);
+            
+            // Ojos robot (azules)
+            ctx.fillStyle = '#3498db';
+            ctx.fillRect(x + w/3, y + h/8, 3, 3);
+            ctx.fillRect(x + 2*w/3, y + h/8, 3, 3);
+            
+            // Cuerpo robot
+            ctx.fillStyle = '#34495e';
+            ctx.fillRect(x + w/4, y + h/3, w/2, h/2);
+        }
+    }
+    
     function drawGame() {
         // Limpiar canvas
         ctx.fillStyle = '#e6eef7';
@@ -224,18 +310,16 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.fillStyle = '#cfd8e3';
         ctx.fillRect(0, canvas.height - 12, canvas.width, 12);
         
-        // Dibujar jugador
-        ctx.fillStyle = '#58d68d';
-        ctx.fillRect(gameState.player.x, gameState.player.y, gameState.player.w, gameState.player.h);
+        // Dibujar jugador (personaje humano)
+        drawHuman(gameState.player.x, gameState.player.y, gameState.player.w, gameState.player.h, gameState.player.direction);
         
         // Dibujar enemigos
-        ctx.fillStyle = '#b33';
         gameState.enemies.forEach(enemy => {
-            ctx.fillRect(enemy.x, enemy.y, enemy.w, enemy.h);
+            drawEnemy(enemy.x, enemy.y, enemy.w, enemy.h, enemy.type);
         });
         
         // Dibujar balas
-        ctx.fillStyle = '#ffd86b';
+        ctx.fillStyle = '#f1c40f';
         gameState.bullets.forEach(bullet => {
             ctx.fillRect(bullet.x, bullet.y, bullet.w, bullet.h);
         });
