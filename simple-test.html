@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Simple - MyOwnSkynet</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0b1020;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .status {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .error { color: #ff6b6b; }
+        .success { color: #58d68d; }
+        .warning { color: #ffd86b; }
+        
+        #gameFrame {
+            width: 100%;
+            height: 500px;
+            border: 2px solid #58d68d;
+            border-radius: 8px;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .controls button {
+            padding: 10px 15px;
+            background: #58d68d;
+            color: #0b1020;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .controls button:hover {
+            background: #4bc078;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Simple - MyOwnSkynet</h1>
+        
+        <div class="status">
+            <h3>Estado del Test:</h3>
+            <div id="status">Iniciando verificación...</div>
+        </div>
+        
+        <div class="controls">
+            <button onclick="runTest()">🔄 Ejecutar Test</button>
+            <button onclick="openGame()">🎮 Abrir Juego</button>
+            <button onclick="checkConsole()">📋 Verificar Consola</button>
+        </div>
+        
+        <iframe id="gameFrame" src="index.html"></iframe>
+    </div>
+
+    <script>
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : '';
+            statusEl.innerHTML = `<span class="${className}">${message}</span>`;
+        }
+        
+        function runTest() {
+            updateStatus('🔍 Ejecutando test...', 'warning');
+            
+            // Verificar archivos
+            Promise.all([
+                fetch('index.html'),
+                fetch('game.js'),
+                fetch('style.css')
+            ]).then(responses => {
+                const allOk = responses.every(r => r.ok);
+                if (allOk) {
+                    updateStatus('✅ Todos los archivos encontrados', 'success');
+                } else {
+                    updateStatus('❌ Algunos archivos no encontrados', 'error');
+                }
+            }).catch(error => {
+                updateStatus(`❌ Error al verificar archivos: ${error.message}`, 'error');
+            });
+        }
+        
+        function openGame() {
+            window.open('index.html', '_blank');
+        }
+        
+        function checkConsole() {
+            updateStatus('📋 Abre las herramientas de desarrollador (F12) y ve a la pestaña Console', 'warning');
+        }
+        
+        // Test automático al cargar
+        window.addEventListener('load', () => {
+            setTimeout(runTest, 1000);
+        });
+        
+        // Verificar si el iframe carga correctamente
+        document.getElementById('gameFrame').addEventListener('load', function() {
+            try {
+                const iframe = this;
+                if (iframe.contentWindow && iframe.contentWindow.MOS) {
+                    updateStatus('✅ Juego cargado correctamente en iframe', 'success');
+                } else {
+                    updateStatus('⚠️ Juego cargado pero objeto MOS no disponible', 'warning');
+                }
+            } catch (error) {
+                updateStatus('❌ Error al verificar iframe: ' + error.message, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

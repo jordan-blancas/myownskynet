@@ -2,19 +2,24 @@
    Works on mobile (touch) and desktop. Persiste mejoras en localStorage.
 */
 
-(() => {
+// Esperar a que el DOM esté completamente cargado
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🚀 DOM cargado, iniciando juego...');
+  
   // --- Canvas responsive setup (colocar al inicio del js) ---
   const canvas = document.getElementById('game');
   if (!canvas) {
-    console.error('Canvas no encontrado!');
+    console.error('❌ Canvas no encontrado!');
     return;
   }
   
   const ctx = canvas.getContext('2d');
   if (!ctx) {
-    console.error('No se pudo obtener el contexto 2D del canvas!');
+    console.error('❌ No se pudo obtener el contexto 2D del canvas!');
     return;
   }
+
+  console.log('✅ Canvas y contexto 2D inicializados');
 
   function resizeCanvas() {
     const parent = canvas.parentElement;
@@ -43,6 +48,20 @@
   const btnShoot = document.getElementById('btnShoot');
   const btnRight = document.getElementById('btnRight');
   const btnRestart = document.getElementById('btnRestart');
+
+  // Verificar que todos los elementos necesarios estén presentes
+  const requiredElements = {
+    scoreEl, creditsEl, upgradeBtn, panel, closePanel, resetBtn,
+    btnLeft, btnShoot, btnRight, btnRestart
+  };
+
+  for (const [name, element] of Object.entries(requiredElements)) {
+    if (!element) {
+      console.error(`❌ Elemento ${name} no encontrado`);
+    }
+  }
+
+  console.log('✅ Elementos del DOM verificados');
 
   // --- State ---
   const state = {
@@ -563,4 +582,4 @@
 
   // expose small debug in console
   window.MOS = { state, upgrades, resetRound, applyUpgrades };
-})();
+});
