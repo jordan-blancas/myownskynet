@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MyOwnSkynet — Versión Final</title>
+
+  <meta name="theme-color" content="#0b1020">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png" type="image/png">
+
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    /* Estilos adicionales para asegurar que todo funcione */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(180deg, #0b1020, #071018);
+      overflow-x: hidden;
+    }
+    
+    main { 
+      width: 100%; 
+      max-width: 1100px; 
+      margin: 0 auto; 
+      display: flex; 
+      gap: 18px; 
+      align-items: flex-start; 
+      padding: 12px; 
+      box-sizing: border-box; 
+    }
+    
+    canvas { 
+      background: #edf2f7; 
+      border-radius: 6px; 
+      display: block; 
+      width: 100%; 
+      height: auto; 
+      max-height: 60vh; 
+      min-height: 220px;
+    }
+    
+    @media (max-width: 720px) {
+      main {
+        flex-direction: column; 
+        padding: 8px;
+      }
+      canvas {
+        max-height: 60vh;
+      }
+      .panel {
+        width: 100%;
+      }
+    }
+    
+    /* Asegurar que los controles sean clickeables */
+    #controls {
+      position: fixed;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-around;
+      z-index: 10000;
+      pointer-events: auto;
+    }
+
+    #controls button {
+      width: 70px;
+      height: 70px;
+      font-size: 2rem;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      cursor: pointer;
+      pointer-events: auto;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    
+    #controls button:active {
+      background: rgba(88, 214, 141, 0.8);
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <h1>MyOwnSkynet - Versión Final</h1>
+    <div class="hud">
+      <div>Score: <span id="score">0</span></div>
+      <div>Cred.: <span id="credits">0</span></div>
+      <button id="upgradeBtn">Mejoras</button>
+      <button id="resetBtn" title="Resetear progreso">Reset</button>
+    </div>
+  </header>
+
+  <main>
+    <canvas id="game" width="900" height="400"></canvas>
+
+    <div id="controls">
+      <button id="btnLeft">⬅</button>
+      <button id="btnShoot">🔥</button>
+      <button id="btnRight">➡</button>
+      <button id="btnRestart" title="Reiniciar partida">🔄</button>
+    </div>
+
+    <aside id="panelUpgrade" class="panel hidden">
+      <h2>Mejoras</h2>
+      <div class="upgrade-list">
+        <div class="upgrade" data-id="speed">
+          <div class="u-title">Velocidad base</div>
+          <div>+10% por nivel</div>
+          <div>Coste: <span class="cost">10</span></div>
+          <button class="buy">Comprar</button>
+        </div>
+
+        <div class="upgrade" data-id="jump">
+          <div class="u-title">Fuerza salto</div>
+          <div>+12% por nivel</div>
+          <div>Coste: <span class="cost">12</span></div>
+          <button class="buy">Comprar</button>
+        </div>
+
+        <div class="upgrade" data-id="shield">
+          <div class="u-title">Escudo (temp)</div>
+          <div>Protege de 1 impacto</div>
+          <div>Coste: <span class="cost">25</span></div>
+          <button class="buy">Comprar</button>
+        </div>
+
+        <div class="upgrade" data-id="mult">
+          <div class="u-title">Multiplicador de créditos</div>
+          <div>+0.1x por nivel</div>
+          <div>Coste: <span class="cost">20</span></div>
+          <button class="buy">Comprar</button>
+        </div>
+      </div>
+      <button id="closePanel">Cerrar</button>
+    </aside>
+
+    <section class="help">
+      <p><strong>Controles:</strong> Flechas para moverse, Espacio para saltar, F para disparar. En móvil usa los botones táctiles.</p>
+      <p><strong>Objetivo:</strong> Elimina enemigos y sobrevive el mayor tiempo posible.</p>
+    </section>
+  </main>
+
+  <footer class="ft">
+    Creado por: Jordan Blancas. | Versión Final Corregida
+  </footer>
+
+  <!-- Usar la versión final del juego -->
+  <script src="game-final.js"></script>
+
+  <script>
+    // Registrar Service Worker para PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(() => console.log('✅ Service Worker registrado'))
+        .catch(err => console.error('❌ SW fallo:', err));
+    }
+    
+    // Debug adicional
+    window.addEventListener('load', () => {
+      console.log('🌐 Página completamente cargada');
+      
+      // Verificar que todos los elementos estén presentes
+      const elements = ['game', 'score', 'credits', 'upgradeBtn', 'resetBtn', 'btnLeft', 'btnShoot', 'btnRight', 'btnRestart'];
+      elements.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          console.log(`✅ ${id} encontrado`);
+        } else {
+          console.error(`❌ ${id} NO encontrado`);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
