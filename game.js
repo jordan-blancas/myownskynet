@@ -19,7 +19,7 @@
 
     // keep player on ground when resize
     if (player) {
-      player.y = Math.min(player.y, canvas.height - player.h - 12);
+      player.y = canvas.height - player.h - 12; // <-- AJUSTE AQUÍ
     }
   }
   window.addEventListener('resize', resizeCanvas);
@@ -259,7 +259,7 @@
     state.score = 0;
     state.credits = 0;
     state.shieldActive = false;
-    player.y = canvas.height - player.h - 12;
+    player.y = canvas.height - player.h - 12; // <-- AJUSTE AQUÍ
     player.vy = 0;
     player.jumps = 0;
     applyUpgrades();
