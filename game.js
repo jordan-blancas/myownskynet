@@ -5,7 +5,16 @@
 (() => {
   // --- Canvas responsive setup (colocar al inicio del js) ---
   const canvas = document.getElementById('game');
+  if (!canvas) {
+    console.error('Canvas no encontrado!');
+    return;
+  }
+  
   const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    console.error('No se pudo obtener el contexto 2D del canvas!');
+    return;
+  }
 
   function resizeCanvas() {
     const parent = canvas.parentElement;
@@ -28,6 +37,12 @@
   const panel = document.getElementById('panelUpgrade');
   const closePanel = document.getElementById('closePanel');
   const resetBtn = document.getElementById('resetBtn');
+  
+  // --- Mobile control buttons ---
+  const btnLeft = document.getElementById('btnLeft');
+  const btnShoot = document.getElementById('btnShoot');
+  const btnRight = document.getElementById('btnRight');
+  const btnRestart = document.getElementById('btnRestart');
 
   // --- State ---
   const state = {
@@ -497,10 +512,29 @@
     if (gameOver) { e.preventDefault(); resetRound(); }
   }, {passive:false});
 
-  // Al final del archivo, después de otros event listeners:
-  document.getElementById('btnRestart').addEventListener('click', () => {
-    resetRound();
-  });
+  // --- Mobile control buttons event listeners ---
+  if (btnLeft) {
+    btnLeft.addEventListener('mousedown', () => keys['ArrowLeft'] = true);
+    btnLeft.addEventListener('mouseup', () => keys['ArrowLeft'] = false);
+    btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowLeft'] = true; });
+    btnLeft.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowLeft'] = false; });
+  }
+  
+  if (btnRight) {
+    btnRight.addEventListener('mousedown', () => keys['ArrowRight'] = true);
+    btnRight.addEventListener('mouseup', () => keys['ArrowRight'] = false);
+    btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowRight'] = true; });
+    btnRight.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowRight'] = false; });
+  }
+  
+  if (btnShoot) {
+    btnShoot.addEventListener('mousedown', () => shoot());
+    btnShoot.addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); });
+  }
+  
+  if (btnRestart) {
+    btnRestart.addEventListener('click', () => resetRound());
+  }
 
   // --- Storage sync (external changes) ---
   window.addEventListener('storage', () => {
@@ -517,7 +551,12 @@
   state.lastTime = performance.now();
 
   // start loop
-  requestAnimationFrame(loop);
+  try {
+    requestAnimationFrame(loop);
+    console.log('✅ Juego iniciado correctamente');
+  } catch (error) {
+    console.error('❌ Error al iniciar el juego:', error);
+  }
 
   // initial HUD
   updateHUD();

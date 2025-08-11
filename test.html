@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test MyOwnSkynet</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0b1020;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .test-info {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .error {
+            color: #ff6b6b;
+        }
+        .success {
+            color: #58d68d;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-info">
+        <h2>Test MyOwnSkynet</h2>
+        <div id="status">Verificando...</div>
+    </div>
+    
+    <div id="game-container">
+        <!-- El juego se cargará aquí -->
+    </div>
+
+    <script>
+        // Test básico para verificar que el juego carga
+        window.addEventListener('load', function() {
+            const status = document.getElementById('status');
+            const gameContainer = document.getElementById('game-container');
+            
+            try {
+                // Verificar que los archivos existen
+                fetch('game.js')
+                    .then(response => {
+                        if (!response.ok) throw new Error('game.js no encontrado');
+                        return fetch('style.css');
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('style.css no encontrado');
+                        return fetch('index.html');
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('index.html no encontrado');
+                        
+                        status.innerHTML = '<span class="success">✅ Archivos encontrados correctamente</span>';
+                        
+                        // Cargar el juego en un iframe para aislarlo
+                        const iframe = document.createElement('iframe');
+                        iframe.src = 'index.html';
+                        iframe.style.width = '100%';
+                        iframe.style.height = '600px';
+                        iframe.style.border = 'none';
+                        iframe.style.borderRadius = '8px';
+                        gameContainer.appendChild(iframe);
+                        
+                        // Verificar que el juego se carga
+                        setTimeout(() => {
+                            if (iframe.contentWindow && iframe.contentWindow.MOS) {
+                                status.innerHTML += '<br><span class="success">✅ Juego cargado correctamente</span>';
+                            } else {
+                                status.innerHTML += '<br><span class="error">❌ El juego no se inicializó correctamente</span>';
+                            }
+                        }, 2000);
+                    })
+                    .catch(error => {
+                        status.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+                    });
+                    
+            } catch (error) {
+                status.innerHTML = `<span class="error">❌ Error general: ${error.message}</span>`;
+            }
+        });
+    </script>
+</body>
+</html> 
