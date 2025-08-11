@@ -38,9 +38,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Estado del juego
     const gameState = {
-        running: true,
+        running: false, // El juego inicia pausado
+        paused: false,
+        gameOver: false,
         score: 0,
         credits: 0,
+        lives: 3, // El jugador tiene 3 vidas
         player: {
             x: 60,
             y: 0, // Se ajustará después
@@ -49,7 +52,9 @@ document.addEventListener('DOMContentLoaded', function() {
             vy: 0,
             onGround: true,
             speed: 6,
-            direction: 1 // 1 = derecha, -1 = izquierda
+            direction: 1, // 1 = derecha, -1 = izquierda
+            invulnerable: false, // Para evitar múltiples hits
+            invulnerableTime: 0
         },
         enemies: [],
         bullets: [],
@@ -130,6 +135,33 @@ document.addEventListener('DOMContentLoaded', function() {
         btnRestart.addEventListener('click', resetGame);
     }
     
+    // Botones principales del juego
+    const btnStart = document.getElementById('btnStart');
+    const btnPause = document.getElementById('btnPause');
+    const btnResume = document.getElementById('btnResume');
+    const btnStop = document.getElementById('btnStop');
+    const btnToggleControls = document.getElementById('btnToggleControls');
+    
+    if (btnStart) {
+        btnStart.addEventListener('click', startGame);
+    }
+    
+    if (btnPause) {
+        btnPause.addEventListener('click', pauseGame);
+    }
+    
+    if (btnResume) {
+        btnResume.addEventListener('click', resumeGame);
+    }
+    
+    if (btnStop) {
+        btnStop.addEventListener('click', stopGame);
+    }
+    
+    if (btnToggleControls) {
+        btnToggleControls.addEventListener('click', toggleControls);
+    }
+    
     // Funciones del juego
     function jump() {
         if (gameState.player.onGround) {
@@ -162,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function updateGame(deltaTime) {
-        if (!gameState.running) return;
+        if (!gameState.running || gameState.paused) return;
         
         // Movimiento del jugador
         if (gameState.keys['ArrowLeft']) {
@@ -188,10 +220,29 @@ document.addEventListener('DOMContentLoaded', function() {
             gameState.player.onGround = true;
         }
         
+        // Actualizar invulnerabilidad del jugador
+        if (gameState.player.invulnerable) {
+            gameState.player.invulnerableTime -= deltaTime;
+            if (gameState.player.invulnerableTime <= 0) {
+                gameState.player.invulnerable = false;
+            }
+        }
+        
         // Actualizar enemigos
         for (let i = gameState.enemies.length - 1; i >= 0; i--) {
             const enemy = gameState.enemies[i];
             enemy.x -= enemy.speed;
+            
+            // Colisión jugador-enemigo
+            if (!gameState.player.invulnerable && 
+                gameState.player.x < enemy.x + enemy.w &&
+                gameState.player.x + gameState.player.w > enemy.x &&
+                gameState.player.y < enemy.y + enemy.h &&
+                gameState.player.y + gameState.player.h > enemy.y) {
+                playerHit();
+                gameState.enemies.splice(i, 1);
+                continue;
+            }
             
             // Eliminar enemigos fuera de pantalla
             if (enemy.x + enemy.w < 0) {
@@ -354,7 +405,9 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.fillRect(0, canvas.height - 12, canvas.width, 12);
         
         // Dibujar jugador (personaje humano)
-        drawHuman(gameState.player.x, gameState.player.y, gameState.player.w, gameState.player.h, gameState.player.direction);
+        if (!gameState.player.invulnerable || Math.floor(Date.now() / 100) % 2) {
+            drawHuman(gameState.player.x, gameState.player.y, gameState.player.w, gameState.player.h, gameState.player.direction);
+        }
         
         // Dibujar enemigos
         gameState.enemies.forEach(enemy => {
@@ -372,6 +425,31 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.font = '16px Arial';
         ctx.fillText(`Score: ${Math.floor(gameState.score)}`, 10, 25);
         ctx.fillText(`Credits: ${Math.floor(gameState.credits)}`, 10, 45);
+        ctx.fillText(`Lives: ${gameState.lives}`, 10, 65);
+        
+        // Mostrar estado del juego
+        if (gameState.paused) {
+            ctx.fillStyle = 'rgba(0,0,0,0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#fff';
+            ctx.font = '32px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('PAUSADO', canvas.width/2, canvas.height/2);
+            ctx.textAlign = 'left';
+        }
+        
+        if (gameState.gameOver) {
+            ctx.fillStyle = 'rgba(0,0,0,0.8)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#e74c3c';
+            ctx.font = '32px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2 - 20);
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px Arial';
+            ctx.fillText(`Puntuación Final: ${Math.floor(gameState.score)}`, canvas.width/2, canvas.height/2 + 20);
+            ctx.textAlign = 'left';
+        }
     }
     
     function updateUI() {
@@ -379,15 +457,79 @@ document.addEventListener('DOMContentLoaded', function() {
         if (creditsEl) creditsEl.textContent = Math.floor(gameState.credits);
     }
     
-    function resetGame() {
+    // Funciones de control del juego
+    function startGame() {
+        gameState.running = true;
+        gameState.paused = false;
+        gameState.gameOver = false;
         gameState.score = 0;
         gameState.credits = 0;
+        gameState.lives = 3;
         gameState.enemies = [];
         gameState.bullets = [];
         gameState.player.x = 60;
         gameState.player.y = canvas.height - 60;
         gameState.player.vy = 0;
-        gameState.running = true;
+        gameState.player.invulnerable = false;
+        
+        // Mostrar/ocultar botones
+        document.getElementById('btnStart').classList.add('hidden');
+        document.getElementById('btnPause').classList.remove('hidden');
+        document.getElementById('btnStop').classList.remove('hidden');
+    }
+    
+    function pauseGame() {
+        gameState.paused = true;
+        document.getElementById('btnPause').classList.add('hidden');
+        document.getElementById('btnResume').classList.remove('hidden');
+    }
+    
+    function resumeGame() {
+        gameState.paused = false;
+        document.getElementById('btnResume').classList.add('hidden');
+        document.getElementById('btnPause').classList.remove('hidden');
+    }
+    
+    function stopGame() {
+        gameState.running = false;
+        gameState.paused = false;
+        gameState.gameOver = true;
+        
+        // Mostrar/ocultar botones
+        document.getElementById('btnPause').classList.add('hidden');
+        document.getElementById('btnResume').classList.add('hidden');
+        document.getElementById('btnStop').classList.add('hidden');
+        document.getElementById('btnStart').classList.remove('hidden');
+    }
+    
+    function toggleControls() {
+        const controlsPanel = document.getElementById('controls');
+        controlsPanel.classList.toggle('collapsed');
+    }
+    
+    function resetGame() {
+        gameState.score = 0;
+        gameState.credits = 0;
+        gameState.lives = 3;
+        gameState.enemies = [];
+        gameState.bullets = [];
+        gameState.player.x = 60;
+        gameState.player.y = canvas.height - 60;
+        gameState.player.vy = 0;
+        gameState.player.invulnerable = false;
+        gameState.gameOver = false;
+    }
+    
+    function playerHit() {
+        if (gameState.player.invulnerable) return;
+        
+        gameState.lives--;
+        gameState.player.invulnerable = true;
+        gameState.player.invulnerableTime = 2000; // 2 segundos de invulnerabilidad
+        
+        if (gameState.lives <= 0) {
+            stopGame();
+        }
     }
     
     function togglePanel() {

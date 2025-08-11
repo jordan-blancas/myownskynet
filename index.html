@@ -51,15 +51,79 @@
       line-height: 1.4;
     }
     
-    #controls {
+    /* Botones principales del juego */
+    .game-controls {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 1001;
+    }
+    
+    .game-btn {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .game-btn.start { background: #27ae60; color: white; }
+    .game-btn.pause { background: #f39c12; color: white; }
+    .game-btn.resume { background: #3498db; color: white; }
+    .game-btn.stop { background: #e74c3c; color: white; }
+    
+    .game-btn:hover { transform: scale(1.05); }
+    .game-btn:active { transform: scale(0.95); }
+    
+    /* Controles retráctiles */
+    .controls-panel {
       position: fixed;
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
+      background: rgba(0,0,0,0.9);
+      border-radius: 15px;
+      padding: 10px;
+      z-index: 1000;
+      transition: all 0.3s ease;
+      max-height: 300px;
+      overflow: hidden;
+    }
+    
+    .controls-panel.collapsed {
+      max-height: 50px;
+    }
+    
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .toggle-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+    
+    .controls-panel.collapsed .toggle-btn {
+      transform: rotate(180deg);
+    }
+    
+    .control-content {
       display: flex;
       flex-direction: column;
       gap: 5px;
-      z-index: 1000;
     }
     
     .control-row {
@@ -74,15 +138,26 @@
       font-size: 1.5rem;
       border-radius: 50%;
       border: none;
-      background: rgba(0,0,0,0.8);
+      background: rgba(255,255,255,0.2);
       color: white;
       cursor: pointer;
       user-select: none;
       -webkit-user-select: none;
+      transition: all 0.2s ease;
+    }
+    
+    #controls button:hover {
+      background: rgba(255,255,255,0.3);
+      transform: scale(1.1);
     }
     
     #controls button:active {
       background: rgba(88, 214, 141, 0.8);
+      transform: scale(0.95);
+    }
+    
+    .hidden {
+      display: none !important;
     }
     
     @media (max-width:720px){
@@ -109,20 +184,35 @@
     <!-- Canvas: el id se mantiene como "game" para compatibilidad con game.js -->
     <canvas id="game" width="900" height="400"></canvas>
 
-    <div id="controls">
-      <div class="control-row">
-        <button id="btnUp">⬆</button>
+    <!-- Botones principales del juego -->
+    <div id="gameControls" class="game-controls">
+      <button id="btnStart" class="game-btn start">▶️ Iniciar</button>
+      <button id="btnPause" class="game-btn pause hidden">⏸️ Pausar</button>
+      <button id="btnResume" class="game-btn resume hidden">▶️ Continuar</button>
+      <button id="btnStop" class="game-btn stop hidden">⏹️ Parar</button>
+    </div>
+
+    <!-- Controles de movimiento (retráctiles) -->
+    <div id="controls" class="controls-panel">
+      <div class="control-header">
+        <span>🎮 Controles</span>
+        <button id="btnToggleControls" class="toggle-btn">⬆️</button>
       </div>
-      <div class="control-row">
-        <button id="btnLeft">⬅</button>
-        <button id="btnShoot">🔥</button>
-        <button id="btnRight">➡</button>
-      </div>
-      <div class="control-row">
-        <button id="btnDown">⬇</button>
-      </div>
-      <div class="control-row">
-        <button id="btnRestart" title="Reiniciar partida">🔄</button>
+      <div class="control-content">
+        <div class="control-row">
+          <button id="btnUp">⬆</button>
+        </div>
+        <div class="control-row">
+          <button id="btnLeft">⬅</button>
+          <button id="btnShoot">🔥</button>
+          <button id="btnRight">➡</button>
+        </div>
+        <div class="control-row">
+          <button id="btnDown">⬇</button>
+        </div>
+        <div class="control-row">
+          <button id="btnRestart" title="Reiniciar partida">🔄</button>
+        </div>
       </div>
     </div>
 
@@ -171,7 +261,7 @@
     Creado por: Jordan Blancas.
   </footer>
 
-  <script src="game.js?v=4"></script>
+  <script src="game.js?v=5"></script>
   <script src="debug.js"></script>
 
   <script>
