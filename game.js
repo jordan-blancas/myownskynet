@@ -8,18 +8,14 @@
   const ctx = canvas.getContext('2d');
 
   function resizeCanvas() {
-    // full-width within container while keeping a minimum logical height
     const parent = canvas.parentElement;
     const maxW = Math.min(window.innerWidth, 1100);
-    // desired aspect ~ 900x220 -> keep scale but allow taller on mobile
     const scale = Math.max(0.6, Math.min(1, window.innerWidth / 900));
-    canvas.width = Math.floor(maxW - 0); // use full width available
-    // height based on ratio but allow chunk for mobile
-    canvas.height = Math.floor(Math.max(220 * scale, window.innerHeight * 0.35));
-
-    // keep player on ground when resize
+    canvas.width = Math.floor(maxW - 0);
+    // Cambia 220 por 320 o 400 para asegurar altura visible
+    canvas.height = Math.floor(Math.max(320 * scale, window.innerHeight * 0.35));
     if (player) {
-      player.y = canvas.height - player.h - 12; // <-- AJUSTE AQUÍ
+      player.y = canvas.height - player.h - 12;
     }
   }
   window.addEventListener('resize', resizeCanvas);
