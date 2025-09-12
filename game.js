@@ -54,7 +54,8 @@ document.addEventListener('DOMContentLoaded', function() {
             speed: 6,
             direction: 1, // 1 = derecha, -1 = izquierda
             invulnerable: false, // Para evitar múltiples hits
-            invulnerableTime: 0
+            invulnerableTime: 0,
+            crouching: false // Nuevo: indica si el jugador está agachado
         },
         enemies: [],
         bullets: [],
@@ -205,14 +206,29 @@ document.addEventListener('DOMContentLoaded', function() {
             gameState.player.x += gameState.player.speed;
             gameState.player.direction = 1;
         }
-        
+
+        // Agacharse
+        if (gameState.keys['ArrowDown'] && gameState.player.onGround) {
+            if (!gameState.player.crouching) {
+                gameState.player.crouching = true;
+                gameState.player.h = 28; // Reducir altura
+                gameState.player.y += 20; // Bajar posición para simular agachado
+            }
+        } else {
+            if (gameState.player.crouching) {
+                gameState.player.crouching = false;
+                gameState.player.y -= 20; // Subir posición
+                gameState.player.h = 48; // Restaurar altura
+            }
+        }
+
         // Mantener jugador en pantalla
         gameState.player.x = Math.max(0, Math.min(canvas.width - gameState.player.w, gameState.player.x));
-        
+
         // Física del jugador
         gameState.player.vy += 0.8; // gravedad
         gameState.player.y += gameState.player.vy;
-        
+
         // Colisión con el suelo
         if (gameState.player.y > canvas.height - gameState.player.h - 12) {
             gameState.player.y = canvas.height - gameState.player.h - 12;
@@ -405,8 +421,15 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.fillRect(0, canvas.height - 12, canvas.width, 12);
         
         // Dibujar jugador (personaje humano)
-        if (!gameState.player.invulnerable || Math.floor(Date.now() / 100) % 2) {
-            drawHuman(gameState.player.x, gameState.player.y, gameState.player.w, gameState.player.h, gameState.player.direction);
+            if (!gameState.player.invulnerable || Math.floor(Date.now() / 100) % 2) {
+                drawHuman(
+                    gameState.player.x,
+                    gameState.player.y,
+                    gameState.player.w,
+                    gameState.player.h,
+                    gameState.player.direction,
+                    gameState.player.crouching
+                );
         }
         
         // Dibujar enemigos
@@ -467,74 +490,124 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.textAlign = 'left';
         }
     }
-    
-    function updateUI() {
-        if (scoreEl) scoreEl.textContent = Math.floor(gameState.score);
-        if (creditsEl) creditsEl.textContent = Math.floor(gameState.credits);
-    }
-    
-    // Funciones de control del juego
-    function startGame() {
-        gameState.running = true;
-        gameState.paused = false;
-        gameState.gameOver = false;
-        gameState.score = 0;
-        gameState.credits = 0;
-        gameState.lives = 3;
-        gameState.enemies = [];
-        gameState.bullets = [];
-        gameState.player.x = 60;
-        gameState.player.y = canvas.height - 60;
-        gameState.player.vy = 0;
-        gameState.player.invulnerable = false;
-        
-        // Mostrar/ocultar botones
-        document.getElementById('btnStart').classList.add('hidden');
-        document.getElementById('btnPause').classList.remove('hidden');
-        document.getElementById('btnStop').classList.remove('hidden');
-    }
-    
-    function pauseGame() {
-        gameState.paused = true;
-        document.getElementById('btnPause').classList.add('hidden');
-        document.getElementById('btnResume').classList.remove('hidden');
-    }
-    
-    function resumeGame() {
-        gameState.paused = false;
-        document.getElementById('btnResume').classList.add('hidden');
-        document.getElementById('btnPause').classList.remove('hidden');
-    }
-    
-    function stopGame() {
-        gameState.running = false;
-        gameState.paused = false;
-        gameState.gameOver = true;
-        
-        // Mostrar/ocultar botones
-        document.getElementById('btnPause').classList.add('hidden');
-        document.getElementById('btnResume').classList.add('hidden');
-        document.getElementById('btnStop').classList.add('hidden');
-        document.getElementById('btnStart').classList.remove('hidden');
-    }
-    
-    function toggleControls() {
-        const controlsPanel = document.getElementById('controls');
-        controlsPanel.classList.toggle('collapsed');
-    }
-    
-    function resetGame() {
-        gameState.score = 0;
-        gameState.credits = 0;
-        gameState.lives = 3;
-        gameState.enemies = [];
-        gameState.bullets = [];
-        gameState.player.x = 60;
-        gameState.player.y = canvas.height - 60;
-        gameState.player.vy = 0;
-        gameState.player.invulnerable = false;
-        gameState.gameOver = false;
-    }
+        // Cabeza (más ovalada)
+        ctx.fillStyle = '#f4d03f';
+        ctx.beginPath();
+        if (crouching) {
+            ctx.ellipse(x + w/2, y + h/5, w/3, h/5, 0, 0, 2 * Math.PI);
+        } else {
+            ctx.ellipse(x + w/2, y + h/6, w/3, h/4, 0, 0, 2 * Math.PI);
+        }
+        ctx.fill();
+
+        // Pelo
+        ctx.fillStyle = '#8B4513';
+        ctx.beginPath();
+        if (crouching) {
+            ctx.ellipse(x + w/2, y + h/7, w/2.5, h/7, 0, 0, 2 * Math.PI);
+        } else {
+            ctx.ellipse(x + w/2, y + h/8, w/2.5, h/5, 0, 0, 2 * Math.PI);
+        }
+        ctx.fill();
+
+        // Ojos
+        ctx.fillStyle = '#000';
+        ctx.beginPath();
+        if (crouching) {
+            ctx.arc(x + w/2 - 3, y + h/5, 1.2, 0, 2 * Math.PI);
+            ctx.arc(x + w/2 + 3, y + h/5, 1.2, 0, 2 * Math.PI);
+        } else {
+            ctx.arc(x + w/2 - 3, y + h/6, 1.5, 0, 2 * Math.PI);
+            ctx.arc(x + w/2 + 3, y + h/6, 1.5, 0, 2 * Math.PI);
+        }
+        ctx.fill();
+
+        // Pupilas
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        if (crouching) {
+            ctx.arc(x + w/2 - 3, y + h/5 - 0.5, 0.4, 0, 2 * Math.PI);
+            ctx.arc(x + w/2 + 3, y + h/5 - 0.5, 0.4, 0, 2 * Math.PI);
+        } else {
+            ctx.arc(x + w/2 - 3, y + h/6 - 0.5, 0.5, 0, 2 * Math.PI);
+            ctx.arc(x + w/2 + 3, y + h/6 - 0.5, 0.5, 0, 2 * Math.PI);
+        }
+        ctx.fill();
+
+        // Nariz
+        ctx.fillStyle = '#f39c12';
+        ctx.beginPath();
+        if (crouching) {
+            ctx.arc(x + w/2, y + h/4.5, 0.7, 0, 2 * Math.PI);
+        } else {
+            ctx.arc(x + w/2, y + h/5, 1, 0, 2 * Math.PI);
+        }
+        ctx.fill();
+
+        // Boca
+        ctx.strokeStyle = '#e74c3c';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        if (crouching) {
+            ctx.arc(x + w/2, y + h/3.5, 1.2, 0, Math.PI);
+        } else {
+            ctx.arc(x + w/2, y + h/4, 2, 0, Math.PI);
+        }
+        ctx.stroke();
+
+        // Cuello
+        ctx.fillStyle = '#f4d03f';
+        if (!crouching) ctx.fillRect(x + w/2 - 2, y + h/3, 4, h/8);
+
+        // Cuerpo (camiseta)
+        ctx.fillStyle = '#3498db';
+        if (crouching) {
+            ctx.fillRect(x + w/4, y + h/2.2, w/2, h/2.5);
+        } else {
+            ctx.fillRect(x + w/4, y + h/2.5, w/2, h/2);
+        }
+
+        // Brazos
+        ctx.fillStyle = '#f4d03f';
+        if (crouching) {
+            ctx.fillRect(x + w/6, y + h/2.2, w/6, h/4);
+            ctx.fillRect(x + 2*w/3, y + h/2.2, w/6, h/4);
+        } else {
+            ctx.fillRect(x + w/6, y + h/2.5, w/6, h/3);
+            ctx.fillRect(x + 2*w/3, y + h/2.5, w/6, h/3);
+        }
+
+        // Manos
+        ctx.fillStyle = '#f4d03f';
+        ctx.beginPath();
+        if (crouching) {
+            ctx.arc(x + w/6, y + h/1.7, 2.2, 0, 2 * Math.PI);
+            ctx.arc(x + 5*w/6, y + h/1.7, 2.2, 0, 2 * Math.PI);
+        } else {
+            ctx.arc(x + w/6, y + h/1.8, 3, 0, 2 * Math.PI);
+            ctx.arc(x + 5*w/6, y + h/1.8, 3, 0, 2 * Math.PI);
+        }
+        ctx.fill();
+
+        // Piernas (pantalones)
+        ctx.fillStyle = '#2c3e50';
+        if (crouching) {
+            ctx.fillRect(x + w/4, y + h*0.85, w/3, h/6);
+            ctx.fillRect(x + 5*w/12, y + h*0.85, w/3, h/6);
+        } else {
+            ctx.fillRect(x + w/4, y + h*0.9, w/3, h/4);
+            ctx.fillRect(x + 5*w/12, y + h*0.9, w/3, h/4);
+        }
+
+        // Zapatos
+        ctx.fillStyle = '#34495e';
+        if (crouching) {
+            ctx.fillRect(x + w/4, y + h*1.05, w/3, h/16);
+            ctx.fillRect(x + 5*w/12, y + h*1.05, w/3, h/16);
+        } else {
+            ctx.fillRect(x + w/4, y + h*1.15, w/3, h/12);
+            ctx.fillRect(x + 5*w/12, y + h*1.15, w/3, h/12);
+        }
     
     function playerHit() {
         if (gameState.player.invulnerable) return;
