@@ -491,8 +491,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-<<<<<<< HEAD
-=======
     function updateUI() {
         if (scoreEl) scoreEl.textContent = Math.floor(gameState.score);
         if (creditsEl) creditsEl.textContent = Math.floor(gameState.credits);
