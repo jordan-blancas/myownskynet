@@ -491,6 +491,76 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+<<<<<<< HEAD
+=======
+    function updateUI() {
+        if (scoreEl) scoreEl.textContent = Math.floor(gameState.score);
+        if (creditsEl) creditsEl.textContent = Math.floor(gameState.credits);
+    }
+    
+    // Funciones de control del juego
+    function startGame() {
+    gameState.running = true;
+    gameState.paused = false;
+    gameState.gameOver = false;
+    gameState.score = 0;
+    gameState.credits = 0;
+    gameState.lives = 3;
+    gameState.enemies = [];
+    gameState.bullets = [];
+    gameState.player.x = 60;
+    resizeCanvas();
+    gameState.player.y = canvas.height - gameState.player.h - 12;
+    gameState.player.vy = 0;
+    gameState.player.invulnerable = false;
+    // Mostrar/ocultar botones
+    document.getElementById('btnStart').classList.add('hidden');
+    document.getElementById('btnPause').classList.remove('hidden');
+    document.getElementById('btnStop').classList.remove('hidden');
+    }
+    
+    function pauseGame() {
+        gameState.paused = true;
+        document.getElementById('btnPause').classList.add('hidden');
+        document.getElementById('btnResume').classList.remove('hidden');
+    }
+    
+    function resumeGame() {
+        gameState.paused = false;
+        document.getElementById('btnResume').classList.add('hidden');
+        document.getElementById('btnPause').classList.remove('hidden');
+    }
+    
+    function stopGame() {
+        gameState.running = false;
+        gameState.paused = false;
+        gameState.gameOver = true;
+        
+        // Mostrar/ocultar botones
+        document.getElementById('btnPause').classList.add('hidden');
+        document.getElementById('btnResume').classList.add('hidden');
+        document.getElementById('btnStop').classList.add('hidden');
+        document.getElementById('btnStart').classList.remove('hidden');
+    }
+    
+    function toggleControls() {
+        const controlsPanel = document.getElementById('controls');
+        controlsPanel.classList.toggle('collapsed');
+    }
+    
+    function resetGame() {
+        gameState.score = 0;
+        gameState.credits = 0;
+        gameState.lives = 3;
+        gameState.enemies = [];
+        gameState.bullets = [];
+        gameState.player.x = 60;
+        gameState.player.y = canvas.height - gameState.player.h - 12;
+        gameState.player.vy = 0;
+        gameState.player.invulnerable = false;
+        gameState.gameOver = false;
+    }
+    
     function playerHit() {
         if (gameState.player.invulnerable) return;
         
