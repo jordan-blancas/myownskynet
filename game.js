@@ -1,3 +1,45 @@
+    // Funciones de control del juego
+    function startGame() {
+        gameState.running = true;
+        gameState.paused = false;
+        gameState.gameOver = false;
+        gameState.score = 0;
+        gameState.credits = 0;
+        gameState.lives = 3;
+        gameState.enemies = [];
+        gameState.bullets = [];
+        gameState.player.x = 60;
+        gameState.player.y = canvas.height - gameState.player.h - 12;
+        gameState.player.vy = 0;
+        gameState.player.invulnerable = false;
+        gameState.player.crouching = false;
+        // Mostrar/ocultar botones
+        document.getElementById('btnStart').classList.add('hidden');
+        document.getElementById('btnPause').classList.remove('hidden');
+        document.getElementById('btnStop').classList.remove('hidden');
+    }
+
+    function pauseGame() {
+        gameState.paused = true;
+        document.getElementById('btnPause').classList.add('hidden');
+        document.getElementById('btnResume').classList.remove('hidden');
+    }
+
+    function resumeGame() {
+        gameState.paused = false;
+        document.getElementById('btnResume').classList.add('hidden');
+        document.getElementById('btnPause').classList.remove('hidden');
+    }
+
+    function stopGame() {
+        gameState.running = false;
+        gameState.paused = false;
+        gameState.gameOver = true;
+        document.getElementById('btnPause').classList.add('hidden');
+        document.getElementById('btnResume').classList.add('hidden');
+        document.getElementById('btnStop').classList.add('hidden');
+        document.getElementById('btnStart').classList.remove('hidden');
+    }
 // MyOwnSkynet - Versión Corregida
 console.log('🚀 DOM cargado, iniciando juego...');
 
